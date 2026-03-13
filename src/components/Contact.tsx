@@ -18,14 +18,14 @@ export default function Contact() {
           feel free to reach out.
         </motion.p>
 
-        <motion.a
-          href="mailto:azkarehman09@gmail.com"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="inline-block px-10 py-4 rounded-lg text-sm bg-accent text-white hover:bg-accent/90 transition-all shadow-sm"
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="inline-block px-10 py-4 rounded-lg text-sm bg-accent/5 border border-accent/20 text-ink font-mono select-all"
         >
-          Say Hello
-        </motion.a>
+          azkarehman09 [at] gmail [dot] com
+        </motion.div>
 
         <div className="flex justify-center gap-6 mt-12">
           <a

@@ -38,9 +38,10 @@ export default function Hero() {
           transition={{ delay: 0.8 }}
           className="text-ink-muted max-w-2xl mx-auto mb-12 text-lg leading-relaxed"
         >
-          Specializing in deep learning and computer vision for medical imaging.
-          Developing advanced algorithms for opportunistic screening,
-          cardiovascular risk prediction, and clinical AI applications.
+          I teach machines to read medical scans and find what humans might miss —
+          from hidden signs of heart disease in a routine chest X-ray to tiny
+          lung nodules in a CT scan. 5+ publications, 5+ imaging modalities,
+          and a belief that AI should reach where specialists can&apos;t.
         </motion.p>
 
         <motion.div

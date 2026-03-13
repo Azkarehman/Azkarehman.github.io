@@ -10,33 +10,41 @@ export default function About() {
       <div className="grid md:grid-cols-[3fr_2fr] gap-12 items-start">
         <div className="space-y-4 text-ink-light leading-relaxed">
           <p>
-            I am an AI researcher specializing in deep learning and computer
-            vision, with expertise in developing advanced image-processing
-            algorithms for applications in object segmentation, detection, and
-            classification.
+            I&apos;m Azka — an AI researcher who got hooked on the idea that a routine
+            hospital scan could quietly save someone&apos;s life. What started as curiosity
+            about deep learning turned into a mission:{" "}
+            <span className="text-accent font-medium">making every medical image count</span>.
           </p>
           <p>
-            My work focuses on translating theoretical advancements into
-            practical solutions, particularly in{" "}
-            <span className="text-accent font-medium">medical imaging</span> and{" "}
-            <span className="text-accent font-medium">healthcare</span>. I develop
-            opportunistic screening methods that leverage routine clinical images
-            for cardiovascular risk prediction.
+            My research sits at the intersection of{" "}
+            <span className="text-accent font-medium">computer vision</span> and{" "}
+            <span className="text-accent font-medium">clinical medicine</span>. I build
+            opportunistic screening systems — AI that looks at a chest X-ray taken
+            for a cough and spots early signs of cardiovascular disease. The kind of
+            thing that could matter most in places where a CT angiogram isn&apos;t an option.
           </p>
           <p>
-            I completed my M.S. in Biomedical Sciences at{" "}
-            <span className="text-accent-blue font-medium">Seoul National University</span>,
-            where I worked on AI-driven cardiovascular disease risk stratification.
+            I completed my M.S. at{" "}
+            <span className="text-accent-blue font-medium">Seoul National University</span>{" "}
+            and spent 2+ years at HealthHub.kr deploying clinical AI products that
+            actually made it to radiologists&apos; screens. I&apos;ve worked across{" "}
+            <span className="font-medium text-ink">5+ imaging modalities</span> —
+            CT, MRI, X-ray, ultrasound, and retinal fundus — and published in
+            journals like npj Digital Medicine, IEEE JBHI, and CMIG.
+          </p>
+          <p className="text-ink-muted italic text-sm">
+            When I&apos;m not training models, you&apos;ll probably find me reading papers
+            at a cafe or trying to explain attention mechanisms to my husband.
           </p>
 
           <div className="pt-4 grid grid-cols-2 gap-2 text-sm font-mono text-ink-muted">
             {[
               "PyTorch",
-              "TensorFlow",
+              "Foundation Models",
               "Computer Vision",
               "Medical Imaging",
-              "Foundation Models",
               "Survival Analysis",
+              "DICOM / Clinical AI",
             ].map((skill) => (
               <div key={skill} className="flex items-center gap-2">
                 <span className="text-accent">&#9655;</span> {skill}

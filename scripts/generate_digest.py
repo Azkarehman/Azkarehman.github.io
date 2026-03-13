@@ -1,7 +1,8 @@
 """
 Fetches medical imaging + AI papers from top-tier venues (MICCAI, ECCV, CVPR,
 NeurIPS, ICCV) via Semantic Scholar, with arXiv/PubMed as fallback.
-Randomly selects 4, generates a blog post, and emails a notification.
+Randomly selects 5, generates a blog post with summaries/tags/body part/modality,
+and emails notifications.
 """
 
 import os
@@ -43,6 +44,89 @@ ARXIV_QUERIES = [
     "medical imaging vision language model",
     "medical image classification CNN deep learning",
 ]
+
+# Recipients
+TO_EMAILS = [
+    "azkarehman2598@gmail.com",
+    "engr.ussman@gmail.com",
+]
+
+# --- Tagging helpers ---
+
+BODY_PARTS = {
+    "brain": ["brain", "cerebr", "cortex", "cortical", "hippocamp", "neuroimag", "cranial", "intracranial", "glioma", "tumor"],
+    "chest": ["chest", "lung", "pulmonary", "thorax", "thoracic", "bronch", "pleural"],
+    "heart": ["cardiac", "heart", "coronary", "cardiovascular", "myocard", "echocardiogr", "aort"],
+    "abdomen": ["abdomen", "abdominal", "liver", "hepat", "kidney", "renal", "pancrea", "spleen", "gastrointestin"],
+    "breast": ["breast", "mammogra", "mammary"],
+    "eye": ["retina", "retinal", "ophthalm", "fundus", "ocular", "eye"],
+    "skin": ["skin", "dermat", "dermoscop", "melanoma", "lesion"],
+    "bone/joint": ["bone", "skeletal", "spine", "spinal", "vertebr", "knee", "musculoskeletal", "fracture", "orthop", "cervical spine"],
+    "pelvis": ["pelvis", "pelvic", "prostate", "bladder", "uterus", "cervix", "cervical cancer", "ovary", "ovarian"],
+    "head & neck": ["thyroid", "oral", "dental", "teeth", "jaw", "mandib", "neck", "laryn", "pharyn", "nasal", "sinus"],
+    "whole body": ["whole body", "full body", "multi-organ", "pan-cancer"],
+    "colon": ["colon", "colorectal", "polyp", "colonoscop", "endoscop"],
+    "vasculature": ["vessel", "vascular", "angiograph", "carotid", "atherosclero"],
+}
+
+MODALITIES = {
+    "CT": ["ct ", "ct,", "computed tomography", "ct scan", "ct image"],
+    "MRI": ["mri", "magnetic resonance", "mr image", "mr scan", "fmri", "dwi", "t1-weighted", "t2-weighted"],
+    "X-ray": ["x-ray", "xray", "x ray", "radiograph", "chest film"],
+    "ultrasound": ["ultrasound", "ultrason", "sonograph", "echocardiogr", "us image"],
+    "mammography": ["mammogra"],
+    "fundus": ["fundus", "retinal image", "retinal photograph"],
+    "OCT": ["oct ", "optical coherence tomography"],
+    "dermoscopy": ["dermoscop"],
+    "endoscopy": ["endoscop", "colonoscop", "gastroscop"],
+    "PET": ["pet ", "pet/ct", "positron emission"],
+    "histopathology": ["histopath", "patholog", "histolog", "whole slide", "wsi", "h&e", "biopsy"],
+    "microscopy": ["microscop", "cell image", "cytolog"],
+}
+
+TOPICS = {
+    "segmentation": ["segment"],
+    "classification": ["classif", "categoriz"],
+    "detection": ["detect", "locali"],
+    "registration": ["registrat", "alignment", "atlas"],
+    "reconstruction": ["reconstruct", "super-resol", "denoising", "inpaint"],
+    "generation": ["generat", "synthes", "gan", "diffusion model"],
+    "VLM": ["vision language", "vlm", "multimodal", "text-image", "clip"],
+    "transformer": ["transformer", "attention mechanism", "vit ", "swin"],
+    "self-supervised": ["self-supervis", "contrastive learn", "pretext", "pretrain"],
+    "foundation model": ["foundation model", "large model", "fine-tun"],
+    "explainability": ["explain", "interpretab", "grad-cam", "attention map", "xai"],
+    "survival analysis": ["survival", "cox", "time-to-event", "hazard"],
+    "federated learning": ["federated"],
+    "semi-supervised": ["semi-supervis", "pseudo label"],
+    "domain adaptation": ["domain adapt", "transfer learn", "domain shift"],
+}
+
+
+def extract_tags(title: str, abstract: str) -> dict:
+    """Extract body part, modality, and topic tags from title + abstract."""
+    text = (title + " " + abstract).lower()
+
+    found_body = []
+    for part, keywords in BODY_PARTS.items():
+        if any(k in text for k in keywords):
+            found_body.append(part)
+
+    found_modality = []
+    for mod, keywords in MODALITIES.items():
+        if any(k in text for k in keywords):
+            found_modality.append(mod)
+
+    found_topics = []
+    for topic, keywords in TOPICS.items():
+        if any(k in text for k in keywords):
+            found_topics.append(topic)
+
+    return {
+        "body_parts": found_body[:3] or ["general"],
+        "modalities": found_modality[:2] or ["not specified"],
+        "topics": found_topics[:3] or ["medical imaging"],
+    }
 
 
 def fetch_semantic_scholar(query: str, venues: list[str], year_range: str, limit: int = 20) -> list[dict]:
@@ -89,6 +173,8 @@ def fetch_semantic_scholar(query: str, venues: list[str], year_range: str, limit
                 venue_name = item.get("venue", venue) or venue
                 year = item.get("year", "")
 
+                tags = extract_tags(title, abstract)
+
                 papers.append({
                     "title": title,
                     "authors": author_str,
@@ -96,8 +182,9 @@ def fetch_semantic_scholar(query: str, venues: list[str], year_range: str, limit
                     "year": str(year),
                     "date": item.get("publicationDate", str(year)),
                     "url": paper_url,
-                    "summary": abstract[:300] if abstract else "",
+                    "summary": abstract[:400] if abstract else "",
                     "source": "conference",
+                    **tags,
                 })
         except Exception as e:
             print(f"  Semantic Scholar error for {venue}/{query}: {e}")
@@ -132,7 +219,10 @@ def fetch_arxiv(query: str, max_results: int = 5) -> list[dict]:
                 author_str += " et al."
             link = entry.find("a:id", ns).text.strip()
             published = entry.find("a:published", ns).text[:10]
-            summary = entry.find("a:summary", ns).text.strip().replace("\n", " ")[:300]
+            abstract = entry.find("a:summary", ns).text.strip().replace("\n", " ")
+
+            tags = extract_tags(title, abstract)
+
             papers.append({
                 "title": title,
                 "authors": author_str,
@@ -140,8 +230,9 @@ def fetch_arxiv(query: str, max_results: int = 5) -> list[dict]:
                 "year": published[:4],
                 "date": published,
                 "url": link,
-                "summary": summary,
+                "summary": abstract[:400],
                 "source": "arxiv",
+                **tags,
             })
     except Exception:
         pass
@@ -161,7 +252,7 @@ def deduplicate(papers: list[dict]) -> list[dict]:
     return unique
 
 
-def select_papers(papers: list[dict], count: int = 4) -> list[dict]:
+def select_papers(papers: list[dict], count: int = 5) -> list[dict]:
     """Select papers, prioritizing conference papers over arXiv."""
     conference_papers = [p for p in papers if p.get("source") == "conference"]
     arxiv_papers = [p for p in papers if p.get("source") == "arxiv"]
@@ -170,14 +261,20 @@ def select_papers(papers: list[dict], count: int = 4) -> list[dict]:
     random.shuffle(arxiv_papers)
 
     selected = []
-    # Take from conferences first
     selected.extend(conference_papers[:count])
-    # Fill remainder from arXiv if needed
     remaining = count - len(selected)
     if remaining > 0:
         selected.extend(arxiv_papers[:remaining])
 
     return selected[:count]
+
+
+def format_tags_md(paper: dict) -> str:
+    """Format tags as a markdown line."""
+    topics = " · ".join(f"`{t}`" for t in paper.get("topics", []))
+    body = " · ".join(f"`{b}`" for b in paper.get("body_parts", []))
+    modality = " · ".join(f"`{m}`" for m in paper.get("modalities", []))
+    return f"**Topics:** {topics} | **Body:** {body} | **Modality:** {modality}"
 
 
 def generate_markdown(papers: list[dict], today: str) -> tuple[str, str]:
@@ -192,13 +289,13 @@ def generate_markdown(papers: list[dict], today: str) -> tuple[str, str]:
         lines.append(f"## {i}. {p['title']}\n")
         lines.append(f"**{p['authors']}**\n")
         lines.append(f"*{p['venue']}* ({p['year']})\n")
+        lines.append(f"\n{format_tags_md(p)}\n")
         if p.get("summary"):
-            # Clean up summary
             summary = p["summary"].rstrip(".")
             lines.append(f"\n> {summary}...\n")
         if p.get("url"):
             lines.append(f"\n[Read paper &rarr;]({p['url']})\n")
-        lines.append("")
+        lines.append("---\n")
 
     body = "\n".join(lines)
 
@@ -228,28 +325,43 @@ papers: {paper_refs}
     return frontmatter + "\n\n" + body, summary
 
 
+def format_tags_html(paper: dict) -> str:
+    """Format tags as HTML badges."""
+    badges = ""
+    for t in paper.get("topics", []):
+        badges += f'<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;background:#c0574615;color:#c05746;margin:2px;">{t}</span>'
+    for b in paper.get("body_parts", []):
+        badges += f'<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;background:#2563eb15;color:#2563eb;margin:2px;">{b}</span>'
+    for m in paper.get("modalities", []):
+        badges += f'<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;background:#0d948815;color:#0d9488;margin:2px;">{m}</span>'
+    return badges
+
+
 def generate_email_html(papers: list[dict], today: str) -> str:
     """Generate a nicely formatted HTML email with paper details."""
     paper_rows = ""
     for i, p in enumerate(papers, 1):
         summary_html = ""
         if p.get("summary"):
-            summary_html = f'<p style="color:#6b7280;font-size:13px;margin:6px 0 0;line-height:1.5;">{p["summary"][:200]}...</p>'
+            summary_html = f'<p style="color:#6b7280;font-size:13px;margin:8px 0;line-height:1.6;">{p["summary"][:300]}...</p>'
+
+        tags_html = format_tags_html(p)
 
         paper_rows += f"""
-        <div style="padding:16px 0;border-bottom:1px solid #e5e0db;">
+        <div style="padding:20px 0;border-bottom:1px solid #e5e0db;">
           <p style="color:#8a8a9a;font-size:12px;margin:0 0 4px;">{p['venue']} ({p['year']})</p>
-          <a href="{p.get('url','#')}" style="color:#c05746;font-size:15px;font-weight:600;text-decoration:none;">
+          <a href="{p.get('url','#')}" style="color:#c05746;font-size:15px;font-weight:600;text-decoration:none;line-height:1.4;">
             {i}. {p['title']}
           </a>
-          <p style="color:#4a4a5a;font-size:13px;margin:4px 0 0;">{p['authors']}</p>
+          <p style="color:#4a4a5a;font-size:13px;margin:4px 0;">{p['authors']}</p>
+          <div style="margin:6px 0;">{tags_html}</div>
           {summary_html}
         </div>"""
 
     return f"""
-    <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:24px;background:#faf8f5;">
+    <div style="font-family:Georgia,serif;max-width:640px;margin:0 auto;padding:24px;background:#faf8f5;">
       <h1 style="color:#1a1a2e;font-size:22px;margin:0 0 4px;">Research Digest</h1>
-      <p style="color:#8a8a9a;font-size:13px;margin:0 0 20px;">{today}</p>
+      <p style="color:#8a8a9a;font-size:13px;margin:0 0 20px;">{today} · {len(papers)} papers from top venues</p>
       {paper_rows}
       <div style="margin-top:24px;">
         <a href="https://azkarehman.github.io/blog"
@@ -258,34 +370,41 @@ def generate_email_html(papers: list[dict], today: str) -> str:
           Read on Blog
         </a>
       </div>
-      <p style="color:#8a8a9a;font-size:11px;margin-top:20px;">Automatically curated from top ML/CV venues.</p>
+      <p style="color:#8a8a9a;font-size:11px;margin-top:20px;">Automatically curated from MICCAI · ECCV · CVPR · NeurIPS · ICCV</p>
     </div>
     """
 
 
 def send_email(subject: str, plain_text: str, html_body: str):
-    """Send notification email."""
+    """Send notification email to all recipients."""
     email_addr = os.environ.get("EMAIL_ADDRESS")
     email_pass = os.environ.get("EMAIL_PASSWORD")
     if not email_addr or not email_pass:
         print("Email credentials not set, skipping notification.")
         return
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = email_addr
-    msg["To"] = email_addr
+    for recipient in TO_EMAILS:
+        msg = MIMEMultipart("alternative")
+        msg["From"] = email_addr
 
-    msg.attach(MIMEText(plain_text, "plain"))
-    msg.attach(MIMEText(html_body, "html"))
+        # Special subject for engr.ussman
+        if "ussman" in recipient:
+            msg["Subject"] = "Your wife's Research blog"
+        else:
+            msg["Subject"] = subject
 
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(email_addr, email_pass)
-            server.send_message(msg)
-        print("Email sent successfully.")
-    except Exception as e:
-        print(f"Failed to send email: {e}")
+        msg["To"] = recipient
+
+        msg.attach(MIMEText(plain_text, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
+
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                server.login(email_addr, email_pass)
+                server.send_message(msg)
+            print(f"Email sent to {recipient}")
+        except Exception as e:
+            print(f"Failed to send email to {recipient}: {e}")
 
 
 def main():
@@ -316,7 +435,7 @@ def main():
     print(f"Found {conference_count} unique conference papers.")
 
     # 2. Fallback to arXiv if not enough
-    if len(all_papers) < 4:
+    if len(all_papers) < 5:
         print("Not enough conference papers, fetching from arXiv...")
         for q in ARXIV_QUERIES:
             all_papers.extend(fetch_arxiv(q, max_results=5))
@@ -327,11 +446,12 @@ def main():
         print("No papers found. Skipping post.")
         return
 
-    # 3. Select 4 papers (conference-first)
-    selected = select_papers(all_papers, count=10)
+    # 3. Select 5 papers (conference-first)
+    selected = select_papers(all_papers, count=5)
     print(f"Selected {len(selected)} papers for digest.")
     for p in selected:
-        print(f"  - [{p['venue']}] {p['title'][:80]}")
+        print(f"  - [{p['venue']}] {p['title'][:70]}")
+        print(f"    Topics: {p.get('topics')} | Body: {p.get('body_parts')} | Modality: {p.get('modalities')}")
 
     # 4. Generate post
     markdown, summary = generate_markdown(selected, today)
@@ -341,8 +461,12 @@ def main():
     # 5. Send email with full paper details
     plain_text = f"Research Digest — {today}\n\n"
     for i, p in enumerate(selected, 1):
-        plain_text += f"{i}. {p['title']}\n   {p['authors']}\n   {p['venue']} ({p['year']})\n   {p.get('url','')}\n\n"
-    plain_text += f"\nRead on blog: https://azkarehman.github.io/blog\n"
+        plain_text += f"{i}. {p['title']}\n"
+        plain_text += f"   {p['authors']}\n"
+        plain_text += f"   {p['venue']} ({p['year']})\n"
+        plain_text += f"   Topics: {', '.join(p.get('topics', []))} | Body: {', '.join(p.get('body_parts', []))} | Modality: {', '.join(p.get('modalities', []))}\n"
+        plain_text += f"   {p.get('url','')}\n\n"
+    plain_text += f"Read on blog: https://azkarehman.github.io/blog\n"
 
     html_body = generate_email_html(selected, today)
     send_email(f"Research Digest — {today}", plain_text, html_body)

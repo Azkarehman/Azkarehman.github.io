@@ -24,9 +24,9 @@ export default function About() {
             for cardiovascular risk prediction.
           </p>
           <p>
-            Currently pursuing my M.S. in Biomedical Sciences at{" "}
+            I completed my M.S. in Biomedical Sciences at{" "}
             <span className="text-accent-blue font-medium">Seoul National University</span>,
-            working on AI-driven cardiovascular disease risk stratification.
+            where I worked on AI-driven cardiovascular disease risk stratification.
           </p>
 
           <div className="pt-4 grid grid-cols-2 gap-2 text-sm font-mono text-ink-muted">

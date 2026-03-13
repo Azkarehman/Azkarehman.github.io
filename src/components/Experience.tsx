@@ -9,7 +9,7 @@ const experiences = [
     location: "Seoul, South Korea",
     period: "Sep 2023 - Aug 2025",
     points: [
-      "Working under Dr. Sang Min Park in the Department of Biomedical Sciences.",
+      "Worked under Dr. Sang Min Park in the Department of Biomedical Sciences.",
       "Research on leveraging AI and data science techniques to address challenges in healthcare systems.",
       "Projects involving health data analysis, predictive modeling, and medical image analysis.",
     ],
@@ -125,30 +125,6 @@ export default function Experience() {
             ))}
           </div>
 
-          {/* Academic Services */}
-          <h3 className="text-lg font-serif text-ink font-semibold mt-12 mb-8">
-            Academic Services
-          </h3>
-          <div className="card p-6">
-            <p className="text-sm text-ink-light mb-3 font-semibold">
-              Reviewer for:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                "IEEE Trans. Medical Imaging",
-                "IEEE Trans. AI",
-                "Medical Physics",
-                "Neurocomputing",
-                "npj Digital Medicine",
-                "Scientific Reports",
-                "Sensors MDPI",
-              ].map((journal) => (
-                <span key={journal} className="tag text-xs">
-                  {journal}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </AnimatedSection>

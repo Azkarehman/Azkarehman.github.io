@@ -308,7 +308,7 @@ def main():
     all_papers = []
     for query in SS_QUERIES:
         print(f"  Query: {query}")
-        results = fetch_semantic_scholar(query, VENUES, year_range, limit=10)
+        results = fetch_semantic_scholar(query, VENUES, year_range, limit=20)
         all_papers.extend(results)
 
     all_papers = deduplicate(all_papers)
@@ -328,7 +328,7 @@ def main():
         return
 
     # 3. Select 4 papers (conference-first)
-    selected = select_papers(all_papers, count=4)
+    selected = select_papers(all_papers, count=10)
     print(f"Selected {len(selected)} papers for digest.")
     for p in selected:
         print(f"  - [{p['venue']}] {p['title'][:80]}")

@@ -24,7 +24,7 @@ export default function Contact() {
           viewport={{ once: true }}
           className="inline-block px-10 py-4 rounded-lg text-sm bg-accent/5 border border-accent/20 text-ink font-mono select-all"
         >
-          azkarehman09 [at] gmail [dot] com
+          azkarehman2598 [at] gmail [dot] com
         </motion.div>
 
         <div className="flex justify-center gap-6 mt-12">

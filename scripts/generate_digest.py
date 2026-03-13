@@ -1,100 +1,115 @@
 """
-Fetches recent medical imaging + AI papers from PubMed and arXiv,
-generates a markdown blog post, and optionally sends an email notification.
+Fetches medical imaging + AI papers from top-tier venues (MICCAI, ECCV, CVPR,
+NeurIPS, ICCV) via Semantic Scholar, with arXiv/PubMed as fallback.
+Randomly selects 4, generates a blog post, and emails a notification.
 """
 
 import os
 import re
 import json
+import random
 import smtplib
+import time
 import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 
 CONTENT_DIR = Path(__file__).parent.parent / "content" / "posts"
 
-PUBMED_QUERIES = [
-    '"medical image segmentation" AND (deep learning OR transformer OR CNN)',
-    '"medical imaging" AND (vision language model OR VLM OR foundation model)',
-    '"medical image classification" AND (transformer OR CNN OR deep learning)',
-    '"medical imaging" AND (regression OR prediction) AND deep learning',
+# Top-tier venues to search
+VENUES = [
+    "MICCAI",
+    "ECCV",
+    "CVPR",
+    "NeurIPS",
+    "ICCV",
 ]
 
+# Search queries for Semantic Scholar
+SS_QUERIES = [
+    "medical image segmentation deep learning",
+    "medical imaging transformer foundation model",
+    "medical image classification detection CNN",
+    "medical imaging vision language model VLM",
+]
+
+# Fallback arXiv queries
 ARXIV_QUERIES = [
     "medical image segmentation transformer",
     "medical imaging vision language model",
     "medical image classification CNN deep learning",
-    "clinical AI foundation model",
 ]
 
 
-def fetch_pubmed(query: str, max_results: int = 5) -> list[dict]:
-    """Search PubMed and return recent paper metadata."""
-    date_from = (datetime.now() - timedelta(days=8)).strftime("%Y/%m/%d")
-    date_to = datetime.now().strftime("%Y/%m/%d")
-
-    params = urllib.parse.urlencode({
-        "db": "pubmed",
-        "term": query,
-        "retmax": max_results,
-        "sort": "date",
-        "mindate": date_from,
-        "maxdate": date_to,
-        "retmode": "json",
-    })
-    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?{params}"
-
-    try:
-        with urllib.request.urlopen(url, timeout=15) as resp:
-            data = json.loads(resp.read())
-        ids = data.get("esearchresult", {}).get("idlist", [])
-    except Exception:
-        return []
-
-    if not ids:
-        return []
-
-    # Fetch summaries
-    params = urllib.parse.urlencode({
-        "db": "pubmed",
-        "id": ",".join(ids),
-        "retmode": "json",
-    })
-    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?{params}"
-
+def fetch_semantic_scholar(query: str, venues: list[str], year_range: str, limit: int = 20) -> list[dict]:
+    """Search Semantic Scholar API for papers from specific venues."""
     papers = []
-    try:
-        with urllib.request.urlopen(url, timeout=15) as resp:
-            data = json.loads(resp.read())
-        results = data.get("result", {})
-        for pid in ids:
-            info = results.get(pid, {})
-            title = info.get("title", "").strip()
-            authors_list = info.get("authors", [])
-            authors = ", ".join(a.get("name", "") for a in authors_list[:5])
-            if len(authors_list) > 5:
-                authors += " et al."
-            source = info.get("source", "")
-            pubdate = info.get("pubdate", "")
-            papers.append({
-                "title": title,
-                "authors": authors,
-                "venue": source,
-                "date": pubdate,
-                "url": f"https://pubmed.ncbi.nlm.nih.gov/{pid}/",
-            })
-    except Exception:
-        pass
+    for venue in venues:
+        params = urllib.parse.urlencode({
+            "query": query,
+            "venue": venue,
+            "year": year_range,
+            "limit": limit,
+            "fields": "title,authors,venue,year,abstract,externalIds,url,publicationDate",
+        })
+        url = f"https://api.semanticscholar.org/graph/v1/paper/search?{params}"
+
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "ResearchDigestBot/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read())
+
+            for item in data.get("data", []):
+                title = (item.get("title") or "").strip()
+                if not title:
+                    continue
+
+                authors_list = item.get("authors", [])
+                author_names = [a.get("name", "") for a in authors_list[:5]]
+                author_str = ", ".join(author_names)
+                if len(authors_list) > 5:
+                    author_str += " et al."
+
+                abstract = (item.get("abstract") or "").strip()
+                ext_ids = item.get("externalIds", {}) or {}
+                doi = ext_ids.get("DOI", "")
+                arxiv_id = ext_ids.get("ArXiv", "")
+
+                if doi:
+                    paper_url = f"https://doi.org/{doi}"
+                elif arxiv_id:
+                    paper_url = f"https://arxiv.org/abs/{arxiv_id}"
+                else:
+                    paper_url = item.get("url", "")
+
+                venue_name = item.get("venue", venue) or venue
+                year = item.get("year", "")
+
+                papers.append({
+                    "title": title,
+                    "authors": author_str,
+                    "venue": venue_name,
+                    "year": str(year),
+                    "date": item.get("publicationDate", str(year)),
+                    "url": paper_url,
+                    "summary": abstract[:300] if abstract else "",
+                    "source": "conference",
+                })
+        except Exception as e:
+            print(f"  Semantic Scholar error for {venue}/{query}: {e}")
+
+        # Rate limit: be generous to avoid 429s
+        time.sleep(3)
 
     return papers
 
 
 def fetch_arxiv(query: str, max_results: int = 5) -> list[dict]:
-    """Search arXiv for recent papers."""
+    """Search arXiv for recent papers (fallback)."""
     params = urllib.parse.urlencode({
         "search_query": f"all:{query}",
         "start": 0,
@@ -117,14 +132,16 @@ def fetch_arxiv(query: str, max_results: int = 5) -> list[dict]:
                 author_str += " et al."
             link = entry.find("a:id", ns).text.strip()
             published = entry.find("a:published", ns).text[:10]
-            summary = entry.find("a:summary", ns).text.strip().replace("\n", " ")[:200]
+            summary = entry.find("a:summary", ns).text.strip().replace("\n", " ")[:300]
             papers.append({
                 "title": title,
                 "authors": author_str,
                 "venue": "arXiv",
+                "year": published[:4],
                 "date": published,
                 "url": link,
                 "summary": summary,
+                "source": "arxiv",
             })
     except Exception:
         pass
@@ -144,55 +161,61 @@ def deduplicate(papers: list[dict]) -> list[dict]:
     return unique
 
 
+def select_papers(papers: list[dict], count: int = 4) -> list[dict]:
+    """Select papers, prioritizing conference papers over arXiv."""
+    conference_papers = [p for p in papers if p.get("source") == "conference"]
+    arxiv_papers = [p for p in papers if p.get("source") == "arxiv"]
+
+    random.shuffle(conference_papers)
+    random.shuffle(arxiv_papers)
+
+    selected = []
+    # Take from conferences first
+    selected.extend(conference_papers[:count])
+    # Fill remainder from arXiv if needed
+    remaining = count - len(selected)
+    if remaining > 0:
+        selected.extend(arxiv_papers[:remaining])
+
+    return selected[:count]
+
+
 def generate_markdown(papers: list[dict], today: str) -> tuple[str, str]:
     """Generate the markdown post content."""
-    # Categorize papers
-    categories = {
-        "Segmentation": [],
-        "Classification & Detection": [],
-        "Foundation Models & VLMs": [],
-        "Other": [],
-    }
+    venues_featured = list(set(p["venue"] for p in papers))
+    venue_str = ", ".join(venues_featured[:4])
 
-    for p in papers:
-        title_lower = p["title"].lower()
-        if "segment" in title_lower:
-            categories["Segmentation"].append(p)
-        elif any(k in title_lower for k in ["classif", "detect", "diagnos"]):
-            categories["Classification & Detection"].append(p)
-        elif any(k in title_lower for k in ["foundation", "vlm", "vision language", "pretrain", "fine-tun"]):
-            categories["Foundation Models & VLMs"].append(p)
-        else:
-            categories["Other"].append(p)
-
-    # Build markdown body
     lines = []
-    for cat, cat_papers in categories.items():
-        if not cat_papers:
-            continue
-        lines.append(f"## {cat}\n")
-        for p in cat_papers:
-            lines.append(f"### [{p['title']}]({p['url']})\n")
-            lines.append(f"**{p['authors']}** — *{p['venue']}* ({p['date']})\n")
-            if p.get("summary"):
-                lines.append(f"{p['summary']}...\n")
-            lines.append("")
+    lines.append(f"This edition features **{len(papers)} papers** from {venue_str}.\n")
+
+    for i, p in enumerate(papers, 1):
+        lines.append(f"## {i}. {p['title']}\n")
+        lines.append(f"**{p['authors']}**\n")
+        lines.append(f"*{p['venue']}* ({p['year']})\n")
+        if p.get("summary"):
+            # Clean up summary
+            summary = p["summary"].rstrip(".")
+            lines.append(f"\n> {summary}...\n")
+        if p.get("url"):
+            lines.append(f"\n[Read paper &rarr;]({p['url']})\n")
+        lines.append("")
 
     body = "\n".join(lines)
 
-    # Build frontmatter
     paper_refs = json.dumps([
         {"title": p["title"], "authors": p["authors"], "url": p["url"]}
         for p in papers
     ], indent=2)
 
-    summary = f"This week's digest features {len(papers)} papers on medical imaging AI — covering segmentation, classification, foundation models, and more."
+    summary = f"Featuring {len(papers)} papers from {venue_str} on medical imaging and AI."
 
     tags = ["Medical Imaging", "Deep Learning"]
-    if categories["Segmentation"]:
-        tags.append("Segmentation")
-    if categories["Foundation Models & VLMs"]:
-        tags.append("Foundation Models")
+    for p in papers:
+        v = p["venue"].upper()
+        if any(conf in v for conf in ["MICCAI", "ECCV", "CVPR", "NEURIPS", "ICCV"]):
+            tag = next(conf for conf in ["MICCAI", "ECCV", "CVPR", "NeurIPS", "ICCV"] if conf.upper() in v)
+            if tag not in tags:
+                tags.append(tag)
 
     frontmatter = f"""---
 title: "Research Digest — {today}"
@@ -205,7 +228,42 @@ papers: {paper_refs}
     return frontmatter + "\n\n" + body, summary
 
 
-def send_email(subject: str, body_text: str):
+def generate_email_html(papers: list[dict], today: str) -> str:
+    """Generate a nicely formatted HTML email with paper details."""
+    paper_rows = ""
+    for i, p in enumerate(papers, 1):
+        summary_html = ""
+        if p.get("summary"):
+            summary_html = f'<p style="color:#6b7280;font-size:13px;margin:6px 0 0;line-height:1.5;">{p["summary"][:200]}...</p>'
+
+        paper_rows += f"""
+        <div style="padding:16px 0;border-bottom:1px solid #e5e0db;">
+          <p style="color:#8a8a9a;font-size:12px;margin:0 0 4px;">{p['venue']} ({p['year']})</p>
+          <a href="{p.get('url','#')}" style="color:#c05746;font-size:15px;font-weight:600;text-decoration:none;">
+            {i}. {p['title']}
+          </a>
+          <p style="color:#4a4a5a;font-size:13px;margin:4px 0 0;">{p['authors']}</p>
+          {summary_html}
+        </div>"""
+
+    return f"""
+    <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:24px;background:#faf8f5;">
+      <h1 style="color:#1a1a2e;font-size:22px;margin:0 0 4px;">Research Digest</h1>
+      <p style="color:#8a8a9a;font-size:13px;margin:0 0 20px;">{today}</p>
+      {paper_rows}
+      <div style="margin-top:24px;">
+        <a href="https://azkarehman.github.io/blog"
+           style="display:inline-block;padding:10px 24px;background:#c05746;color:white;
+                  text-decoration:none;border-radius:8px;font-size:14px;">
+          Read on Blog
+        </a>
+      </div>
+      <p style="color:#8a8a9a;font-size:11px;margin-top:20px;">Automatically curated from top ML/CV venues.</p>
+    </div>
+    """
+
+
+def send_email(subject: str, plain_text: str, html_body: str):
     """Send notification email."""
     email_addr = os.environ.get("EMAIL_ADDRESS")
     email_pass = os.environ.get("EMAIL_PASSWORD")
@@ -218,20 +276,7 @@ def send_email(subject: str, body_text: str):
     msg["From"] = email_addr
     msg["To"] = email_addr
 
-    html_body = f"""
-    <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #c05746; font-size: 24px;">New Research Digest Posted</h1>
-      <p style="color: #4a4a5a; line-height: 1.6;">{body_text}</p>
-      <a href="https://azkarehman.github.io/blog"
-         style="display: inline-block; margin-top: 16px; padding: 10px 24px;
-                background: #c05746; color: white; text-decoration: none;
-                border-radius: 8px; font-size: 14px;">
-        Read on Blog
-      </a>
-    </div>
-    """
-
-    msg.attach(MIMEText(body_text, "plain"))
+    msg.attach(MIMEText(plain_text, "plain"))
     msg.attach(MIMEText(html_body, "html"))
 
     try:
@@ -255,30 +300,52 @@ def main():
 
     CONTENT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Fetch papers
-    print("Fetching from PubMed...")
-    all_papers = []
-    for q in PUBMED_QUERIES:
-        all_papers.extend(fetch_pubmed(q, max_results=3))
+    current_year = datetime.now().year
+    year_range = f"{current_year - 3}-{current_year}"
 
-    print("Fetching from arXiv...")
-    for q in ARXIV_QUERIES:
-        all_papers.extend(fetch_arxiv(q, max_results=3))
+    # 1. Fetch from top-tier conferences (priority)
+    print(f"Searching top venues ({', '.join(VENUES)}) for {year_range}...")
+    all_papers = []
+    for query in SS_QUERIES:
+        print(f"  Query: {query}")
+        results = fetch_semantic_scholar(query, VENUES, year_range, limit=10)
+        all_papers.extend(results)
 
     all_papers = deduplicate(all_papers)
-    print(f"Found {len(all_papers)} unique papers.")
+    conference_count = len(all_papers)
+    print(f"Found {conference_count} unique conference papers.")
+
+    # 2. Fallback to arXiv if not enough
+    if len(all_papers) < 4:
+        print("Not enough conference papers, fetching from arXiv...")
+        for q in ARXIV_QUERIES:
+            all_papers.extend(fetch_arxiv(q, max_results=5))
+        all_papers = deduplicate(all_papers)
+        print(f"Total after arXiv fallback: {len(all_papers)} papers.")
 
     if not all_papers:
-        print("No papers found this cycle. Skipping post.")
+        print("No papers found. Skipping post.")
         return
 
-    # Generate post
-    markdown, summary = generate_markdown(all_papers, today)
+    # 3. Select 4 papers (conference-first)
+    selected = select_papers(all_papers, count=4)
+    print(f"Selected {len(selected)} papers for digest.")
+    for p in selected:
+        print(f"  - [{p['venue']}] {p['title'][:80]}")
+
+    # 4. Generate post
+    markdown, summary = generate_markdown(selected, today)
     output_path.write_text(markdown, encoding="utf-8")
     print(f"Post written to {output_path}")
 
-    # Send email
-    send_email(f"Research Digest — {today}", summary)
+    # 5. Send email with full paper details
+    plain_text = f"Research Digest — {today}\n\n"
+    for i, p in enumerate(selected, 1):
+        plain_text += f"{i}. {p['title']}\n   {p['authors']}\n   {p['venue']} ({p['year']})\n   {p.get('url','')}\n\n"
+    plain_text += f"\nRead on blog: https://azkarehman.github.io/blog\n"
+
+    html_body = generate_email_html(selected, today)
+    send_email(f"Research Digest — {today}", plain_text, html_body)
 
 
 if __name__ == "__main__":

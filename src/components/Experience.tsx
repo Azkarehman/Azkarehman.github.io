@@ -46,17 +46,17 @@ const education = [
 
 export default function Experience() {
   return (
-    <AnimatedSection id="experience" className="py-24 px-6 max-w-6xl mx-auto">
-      <SectionTitle number="02" title="Experience & Education" />
+    <AnimatedSection id="experience" className="py-24 px-6 max-w-5xl mx-auto">
+      <SectionTitle title="Experience & Education" />
 
       <div className="grid md:grid-cols-2 gap-12">
         {/* Experience */}
         <div>
-          <h3 className="text-lg font-mono text-[#00f5ff] mb-8">
-            // Work Experience
+          <h3 className="text-lg font-serif text-ink font-semibold mb-8">
+            Work Experience
           </h3>
-          <div className="relative pl-8 space-y-10">
-            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#00f5ff] via-[#a855f7] to-transparent" />
+          <div className="relative pl-8 space-y-8">
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-accent via-border to-transparent" />
             {experiences.map((exp, i) => (
               <motion.div
                 key={i}
@@ -66,24 +66,24 @@ export default function Experience() {
                 transition={{ delay: i * 0.2 }}
                 className="relative"
               >
-                <div className="absolute -left-8 top-1.5 w-3 h-3 rounded-full bg-[#00f5ff] shadow-[0_0_15px_rgba(0,245,255,0.5)]" />
-                <div className="glass p-6">
-                  <h4 className="text-lg font-semibold text-gray-100">
+                <div className="absolute -left-[2.15rem] top-1.5 w-3 h-3 rounded-full bg-accent border-2 border-cream" />
+                <div className="card p-6">
+                  <h4 className="text-lg font-semibold text-ink">
                     {exp.role}
                   </h4>
-                  <p className="text-[#a855f7] font-mono text-sm">
+                  <p className="text-accent font-medium text-sm">
                     {exp.company}
                   </p>
-                  <p className="text-gray-500 text-sm font-mono mt-1">
+                  <p className="text-ink-muted text-sm mt-1">
                     {exp.period} | {exp.location}
                   </p>
                   <ul className="mt-4 space-y-2">
                     {exp.points.map((point, j) => (
                       <li
                         key={j}
-                        className="text-gray-400 text-sm flex gap-2"
+                        className="text-ink-light text-sm flex gap-2"
                       >
-                        <span className="text-[#00f5ff] mt-1 shrink-0">
+                        <span className="text-accent mt-1 shrink-0">
                           &#9655;
                         </span>
                         {point}
@@ -98,8 +98,8 @@ export default function Experience() {
 
         {/* Education */}
         <div>
-          <h3 className="text-lg font-mono text-[#a855f7] mb-8">
-            // Education
+          <h3 className="text-lg font-serif text-ink font-semibold mb-8">
+            Education
           </h3>
           <div className="space-y-6">
             {education.map((edu, i) => (
@@ -109,28 +109,28 @@ export default function Experience() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.2 }}
-                className="glass p-6"
+                className="card p-6"
               >
-                <h4 className="text-lg font-semibold text-gray-100">
+                <h4 className="text-lg font-semibold text-ink">
                   {edu.degree}
                 </h4>
-                <p className="text-[#00f5ff] font-mono text-sm">{edu.school}</p>
-                <p className="text-gray-500 text-sm font-mono mt-1">
+                <p className="text-accent-blue font-medium text-sm">{edu.school}</p>
+                <p className="text-ink-muted text-sm mt-1">
                   {edu.period}
                 </p>
-                <p className="text-gray-400 text-sm mt-3">
-                  <span className="text-gray-500">Thesis:</span> {edu.thesis}
+                <p className="text-ink-light text-sm mt-3">
+                  <span className="text-ink-muted italic">Thesis:</span> {edu.thesis}
                 </p>
               </motion.div>
             ))}
           </div>
 
           {/* Academic Services */}
-          <h3 className="text-lg font-mono text-[#ec4899] mt-12 mb-8">
-            // Academic Services
+          <h3 className="text-lg font-serif text-ink font-semibold mt-12 mb-8">
+            Academic Services
           </h3>
-          <div className="glass p-6">
-            <p className="text-sm text-gray-400 mb-3 font-semibold">
+          <div className="card p-6">
+            <p className="text-sm text-ink-light mb-3 font-semibold">
               Reviewer for:
             </p>
             <div className="flex flex-wrap gap-2">

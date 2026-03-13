@@ -95,9 +95,9 @@ export default function Publications() {
   return (
     <AnimatedSection
       id="publications"
-      className="py-24 px-6 max-w-6xl mx-auto"
+      className="py-24 px-6 max-w-5xl mx-auto"
     >
-      <SectionTitle number="03" title="Publications" />
+      <SectionTitle title="Publications" />
       <div className="space-y-4">
         {publications.map((pub, i) => (
           <motion.div
@@ -106,7 +106,7 @@ export default function Publications() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.05 }}
-            className="glass p-6 group"
+            className="card p-6 group"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
@@ -116,7 +116,7 @@ export default function Publications() {
                   )}
                   <span
                     className={`tag text-xs ${
-                      pub.status === "under-review" ? "tag-pink" : "tag-purple"
+                      pub.status === "under-review" ? "tag-teal" : "tag-blue"
                     }`}
                   >
                     {pub.status === "under-review"
@@ -124,16 +124,16 @@ export default function Publications() {
                       : pub.year}
                   </span>
                   {pub.impact && (
-                    <span className="text-xs font-mono text-gray-500">
+                    <span className="text-xs font-mono text-ink-muted">
                       {pub.impact}
                     </span>
                   )}
                 </div>
-                <h4 className="text-gray-100 font-medium group-hover:text-[#00f5ff] transition-colors">
+                <h4 className="text-ink font-medium group-hover:text-accent transition-colors">
                   {pub.title}
                 </h4>
-                <p className="text-gray-500 text-sm mt-1">{pub.authors}</p>
-                <p className="text-[#a855f7] text-sm font-mono mt-1">
+                <p className="text-ink-muted text-sm mt-1">{pub.authors}</p>
+                <p className="text-accent-blue text-sm font-medium mt-1 italic">
                   {pub.venue}
                 </p>
               </div>
@@ -142,7 +142,7 @@ export default function Publications() {
                   href={pub.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-500 hover:text-[#00f5ff] transition-colors shrink-0 mt-2"
+                  className="text-ink-muted hover:text-accent transition-colors shrink-0 mt-2"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

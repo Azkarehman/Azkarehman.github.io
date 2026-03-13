@@ -15,8 +15,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <div className="mesh-gradient" />
-        <div className="grid-overlay" />
         {children}
       </body>
     </html>

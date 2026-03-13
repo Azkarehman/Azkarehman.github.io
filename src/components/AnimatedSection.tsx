@@ -25,12 +25,11 @@ export default function AnimatedSection({
   );
 }
 
-export function SectionTitle({ number, title }: { number: string; title: string }) {
+export function SectionTitle({ title }: { title: string }) {
   return (
-    <div className="flex items-center gap-4 mb-12">
-      <span className="text-[#00f5ff] font-mono text-lg">{number}.</span>
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-100">{title}</h2>
-      <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent" />
+    <div className="mb-12">
+      <h2 className="section-title text-3xl md:text-4xl text-ink">{title}</h2>
+      <div className="divider mt-4 w-24" />
     </div>
   );
 }

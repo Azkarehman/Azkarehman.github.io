@@ -8,14 +8,12 @@ const projects = [
     description:
       "Developed an opportunistic screening pipeline to estimate cardiovascular risk from routine abdominal CT scans. Deep learning models for imaging-based risk prediction evaluated using survival analysis.",
     tags: ["PyTorch", "Medical Imaging", "Cox Models", "CT Scans"],
-    color: "from-[#00f5ff] to-[#3b82f6]",
   },
   {
     title: "Atherosclerosis Screening from Chest X-Rays with Foundation Models",
     description:
       "Comparative evaluation of foundation models (Rad-DINO, DINOv2, CheXagent, CLIP) for opportunistic cardiovascular risk prediction from standard chest X-rays with explainability analysis.",
     tags: ["Foundation Models", "LoRA", "Grad-CAM", "Survival Analysis"],
-    color: "from-[#a855f7] to-[#ec4899]",
   },
   {
     title: "KL Grade Classification in Knee X-ray Images",
@@ -24,7 +22,6 @@ const projects = [
     tags: ["Keras", "TensorFlow", "Classification", "X-ray"],
     github:
       "https://github.com/Azkarehman/-KL-Grade-Classification-in-Knee-Xray-Images-",
-    color: "from-[#3b82f6] to-[#00f5ff]",
   },
   {
     title: "3D Cervical Spine Segmentation",
@@ -33,14 +30,13 @@ const projects = [
     tags: ["PyTorch", "3D Segmentation", "CNN", "Medical Imaging"],
     github:
       "https://github.com/Minhah-Saleem/Cervical-Spine-Segmentation",
-    color: "from-[#ec4899] to-[#a855f7]",
   },
 ];
 
 export default function Projects() {
   return (
-    <AnimatedSection id="projects" className="py-24 px-6 max-w-6xl mx-auto">
-      <SectionTitle number="04" title="Projects" />
+    <AnimatedSection id="projects" className="py-24 px-6 max-w-5xl mx-auto">
+      <SectionTitle title="Projects" />
       <div className="grid md:grid-cols-2 gap-6">
         {projects.map((project, i) => (
           <motion.div
@@ -49,26 +45,20 @@ export default function Projects() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1 }}
-            className="glass p-6 group relative overflow-hidden"
+            className="card p-6 group"
           >
-            {/* Top gradient bar */}
-            <div
-              className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${project.color} opacity-50 group-hover:opacity-100 transition-opacity`}
-            />
-
             <div className="flex items-center justify-between mb-4">
-              {/* Folder icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="40"
-                height="40"
+                width="36"
+                height="36"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#00f5ff"
-                strokeWidth="1"
+                stroke="currentColor"
+                strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="opacity-60"
+                className="text-accent"
               >
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
               </svg>
@@ -77,7 +67,7 @@ export default function Projects() {
                   href={project.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-500 hover:text-[#00f5ff] transition-colors"
+                  className="text-ink-muted hover:text-accent transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -92,15 +82,15 @@ export default function Projects() {
               )}
             </div>
 
-            <h4 className="text-lg font-semibold text-gray-100 group-hover:text-[#00f5ff] transition-colors mb-3">
+            <h4 className="text-lg font-semibold text-ink group-hover:text-accent transition-colors mb-3">
               {project.title}
             </h4>
-            <p className="text-gray-400 text-sm leading-relaxed mb-4">
+            <p className="text-ink-light text-sm leading-relaxed mb-4">
               {project.description}
             </p>
             <div className="flex flex-wrap gap-2">
               {project.tags.map((tag) => (
-                <span key={tag} className="text-xs font-mono text-gray-500">
+                <span key={tag} className="tag text-xs">
                   {tag}
                 </span>
               ))}

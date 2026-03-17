@@ -48,18 +48,6 @@ const githubProjects = [
     github: "https://github.com/Azkarehman/MAXedNet",
     tags: ["Jupyter", "Deep Learning"],
   },
-  {
-    name: "DINO Concise",
-    description: "Concise implementation of DINO self-supervised learning.",
-    github: "https://github.com/Azkarehman/DINO_concise",
-    tags: ["Jupyter", "Self-Supervised"],
-  },
-  {
-    name: "SNU Survival Analysis",
-    description: "Survival analysis models for clinical research.",
-    github: "https://github.com/Azkarehman/SNU_surv",
-    tags: ["Jupyter", "Survival Analysis"],
-  },
 ];
 
 export default function Projects() {

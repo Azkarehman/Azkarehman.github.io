@@ -71,20 +71,21 @@ export default function Gallery() {
             className="card overflow-hidden group cursor-pointer"
             onClick={() => setSelected(i)}
           >
-            <div className="relative h-44 overflow-hidden bg-paper">
+            <div className="relative h-48 overflow-hidden bg-paper flex items-center justify-center">
               {item.isGif ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={item.image}
                   alt={item.title}
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                  loading="eager"
                 />
               ) : (
                 <Image
                   src={item.image}
                   alt={item.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-contain group-hover:scale-105 transition-transform duration-500"
                 />
               )}
             </div>
@@ -119,13 +120,14 @@ export default function Gallery() {
               className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative h-64 sm:h-80 bg-paper">
+              <div className="relative h-64 sm:h-80 bg-paper flex items-center justify-center">
                 {highlights[selected].isGif ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={highlights[selected].image}
                     alt={highlights[selected].title}
                     className="w-full h-full object-contain"
+                    loading="eager"
                   />
                 ) : (
                   <Image

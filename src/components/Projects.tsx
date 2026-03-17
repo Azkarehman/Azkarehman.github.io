@@ -19,6 +19,12 @@ const featuredProjects = [
 
 const githubProjects = [
   {
+    name: "CXR-Atherosclerosis-Screening",
+    description: "Opportunistic atherosclerosis screening from chest X-rays using foundation models (Rad-DINO, DINOv2, OpenCLIP, CheXagent) with LoRA fine-tuning and survival analysis.",
+    github: "https://github.com/Azkarehman/CXR-Atherosclerosis-Screening",
+    tags: ["PyTorch", "Foundation Models", "LoRA"],
+  },
+  {
     name: "MESAHA-Net",
     description: "Medical image segmentation and analysis network.",
     github: "https://github.com/Azkarehman/MESAHA-Net",

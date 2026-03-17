@@ -10,31 +10,29 @@ export default function About() {
       <div className="grid md:grid-cols-[3fr_2fr] gap-12 items-start">
         <div className="space-y-4 text-ink-light leading-relaxed">
           <p>
-            I&apos;m Azka — an AI researcher who got hooked on the idea that a routine
-            hospital scan could quietly save someone&apos;s life. What started as curiosity
-            about deep learning turned into a mission:{" "}
-            <span className="text-accent font-medium">making every medical image count</span>.
+            I am an AI researcher focused on developing deep learning systems
+            for medical image analysis. My work centers on{" "}
+            <span className="text-accent font-medium">opportunistic screening</span>:
+            extracting clinically meaningful biomarkers from routine imaging
+            studies such as chest X-rays and abdominal CT scans to identify
+            early signs of cardiovascular disease.
           </p>
           <p>
-            My research sits at the intersection of{" "}
+            My research is at the intersection of{" "}
             <span className="text-accent font-medium">computer vision</span> and{" "}
-            <span className="text-accent font-medium">clinical medicine</span>. I build
-            opportunistic screening systems — AI that looks at a chest X-ray taken
-            for a cough and spots early signs of cardiovascular disease. The kind of
-            thing that could matter most in places where a CT angiogram isn&apos;t an option.
+            <span className="text-accent font-medium">clinical medicine</span>,
+            with a focus on foundation models, explainability, and survival analysis
+            for risk stratification. The goal is to make every routine scan count,
+            especially in settings where specialized imaging is not available.
           </p>
           <p>
             I completed my M.S. at{" "}
             <span className="text-accent-blue font-medium">Seoul National University</span>{" "}
-            and spent 2+ years at HealthHub.kr deploying clinical AI products that
-            actually made it to radiologists&apos; screens. I&apos;ve worked across{" "}
-            <span className="font-medium text-ink">5+ imaging modalities</span> —
-            CT, MRI, X-ray, ultrasound, and retinal fundus — and published in
-            journals like npj Digital Medicine, IEEE JBHI, and CMIG.
-          </p>
-          <p className="text-ink-muted italic text-sm">
-            When I&apos;m not training models, you&apos;ll probably find me reading papers
-            at a cafe or trying to explain attention mechanisms to my husband.
+            and spent 2+ years at HealthHub.kr deploying clinical AI products
+            used by radiologists in practice. I have worked across{" "}
+            <span className="font-medium text-ink">5+ imaging modalities</span> (CT,
+            MRI, X-ray, ultrasound, retinal fundus) and published in journals
+            including npj Digital Medicine, IEEE JBHI, and CMIG.
           </p>
 
           <div className="pt-4 grid grid-cols-2 gap-2 text-sm font-mono text-ink-muted">

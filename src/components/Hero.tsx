@@ -38,10 +38,10 @@ export default function Hero() {
           transition={{ delay: 0.8 }}
           className="text-ink-muted max-w-2xl mx-auto mb-12 text-lg leading-relaxed"
         >
-          I teach machines to read medical scans and find what humans might miss —
-          from hidden signs of heart disease in a routine chest X-ray to tiny
-          lung nodules in a CT scan. 5+ publications, 5+ imaging modalities,
-          and a belief that AI should reach where specialists can&apos;t.
+          Developing deep learning systems for opportunistic screening
+          in medical imaging. From detecting cardiovascular risk in routine
+          chest X-rays to finding lung nodules in CT scans. 5+ publications,
+          5+ imaging modalities, bridging AI and clinical practice.
         </motion.p>
 
         <motion.div

@@ -6,7 +6,7 @@ import Image from "next/image";
 
 const highlights = [
   {
-    title: "WONCA 2025 — Opportunistic Atherosclerosis Detection from Chest X-Rays",
+    title: "WONCA 2025: Opportunistic Atherosclerosis Detection from Chest X-Rays",
     description:
       "Presented at WONCA 2025 on using foundation models (Rad-DINO, DINOv2, CheXagent, OpenCLIP) to detect atherosclerosis from routine chest X-rays, enabling cardiovascular risk prediction without specialized imaging.",
     image: "/images/wonca_title.png",
@@ -27,7 +27,7 @@ const highlights = [
     tags: ["Rad-DINO", "LoRA", "Grad-CAM"],
   },
   {
-    title: "Lung Nodule Detection — Human-in-the-Loop Solution",
+    title: "Lung Nodule Detection: Human-in-the-Loop Solution",
     description:
       "Developed at HealthHub.kr: an interactive lung nodule detection system from chest CT scans with volume estimation. Deployed on the DICOMLINK/HPACS platform for clinical use.",
     image: "/images/lung_nodule.gif",
@@ -42,7 +42,7 @@ const highlights = [
     tags: ["Grad-CAM", "XAI", "Clinical Validation"],
   },
   {
-    title: "Brain Tumor Segmentation — SDS-MSA-Net",
+    title: "Brain Tumor Segmentation: SDS-MSA-Net",
     description:
       "Multi-scale attention network with selective deep supervision for brain tumor segmentation from multi-modal MRI (T1, T1ce, T2, FLAIR). Published in Sensors 2023.",
     image: "/images/profile_brain_tumor.png",
@@ -57,7 +57,7 @@ export default function Gallery() {
     <AnimatedSection id="gallery" className="py-24 px-6 max-w-5xl mx-auto">
       <SectionTitle title="Research Highlights" />
       <p className="text-ink-light mb-8 -mt-6 max-w-2xl">
-        Visual snapshots from my research — presentations, pipelines, and deployed solutions across medical imaging modalities.
+        Visual snapshots from my research: presentations, pipelines, and deployed solutions across medical imaging modalities.
       </p>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

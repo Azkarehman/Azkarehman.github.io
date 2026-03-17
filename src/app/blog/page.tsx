@@ -19,7 +19,7 @@ export default function BlogIndex() {
         Research Digest
       </h1>
       <p className="text-ink-muted mb-12 text-lg">
-        Curated highlights from recent medical imaging & AI research — updated twice a week.
+        Curated highlights from recent medical imaging and AI research, updated twice a week.
       </p>
 
       {posts.length === 0 ? (
